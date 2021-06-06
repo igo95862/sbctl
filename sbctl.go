@@ -9,9 +9,40 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Functions that doesn't fit anywhere else
+
+// Check BMP image
+func CheckSplashImage(path string) error {
+
+	out, err := exec.Command("magick",
+		"identify",
+		"-format", "%m\n%[type]",
+		path,
+	).Output()
+	if err != nil {
+		return err
+	}
+
+	magickResults := strings.Split(string(out), "\n")
+	imageFormat := magickResults[0]
+	imagePixelFormat := magickResults[1]
+
+	if imageFormat != "BMP" {
+		return fmt.Errorf("wrong splash image format, expected BMP got %s", imageFormat)
+	}
+
+	switch imagePixelFormat {
+	case "TrueColorAlpha":
+	case "TrueColor":
+	default:
+		return fmt.Errorf("wrong pixel format, expected TrueColorAlpha or TrueColor got %s", imagePixelFormat)
+	}
+
+	return nil
+}
 
 type LsblkEntry struct {
 	Parttype   string `json:"parttype"`
